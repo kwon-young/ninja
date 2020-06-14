@@ -23,7 +23,7 @@
 #include <string.h>
 
 #ifdef _WIN32
-#include "getopt.h"
+#include "getopt2.h"
 #include <direct.h>
 #else
 #include <getopt.h>

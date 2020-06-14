@@ -72,6 +72,7 @@ add_library(libninja OBJECT
 	src/util.cc
 	src/version.cc
 )
+target_include_directories(libninja PUBLIC src)
 if(WIN32)
 	target_sources(libninja PRIVATE
 		src/subprocess-win32.cc

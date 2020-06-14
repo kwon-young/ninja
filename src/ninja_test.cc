@@ -17,9 +17,9 @@
 #include <stdlib.h>
 
 #ifdef _WIN32
-#include "getopt.h"
+#include "getopt2.h"
 #elif defined(_AIX)
-#include "getopt.h"
+#include "getopt2.h"
 #include <unistd.h>
 #else
 #include <getopt.h>

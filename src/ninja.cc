@@ -20,11 +20,11 @@
 #include <cstdlib>
 
 #ifdef _WIN32
-#include "getopt.h"
+#include "getopt2.h"
 #include <direct.h>
 #include <windows.h>
 #elif defined(_AIX)
-#include "getopt.h"
+#include "getopt2.h"
 #include <unistd.h>
 #else
 #include <getopt.h>
