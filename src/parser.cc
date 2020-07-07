@@ -39,6 +39,8 @@ bool Parser::Load(const string& filename, string* err, Lexer* parent) {
   return Parse(filename, contents, err);
 }
 
+Parser::~Parser() = default;
+
 bool Parser::ExpectToken(Lexer::Token expected, string* err) {
   Lexer::Token token = lexer_.ReadToken();
   if (token != expected) {

@@ -32,6 +32,8 @@ struct Parser {
   /// Load and parse a file.
   bool Load(const string& filename, string* err, Lexer* parent = NULL);
 
+  virtual ~Parser() = 0;
+
 protected:
   /// If the next token is not \a expected, produce an error string
   /// saying "expected foo, got bar".
