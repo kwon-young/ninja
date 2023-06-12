@@ -69,7 +69,7 @@ true.</pre>
 <h2 class="wiki">Documentation</h2>
 
 <p>
-You can find a documented list of predicate here.</p>
+You can find a documented list of predicate <a href="https://kwon-young.github.io/ninja/">here</a>.</p>
 
 <p>
 You can generate the documentation locally, either statically in the subdirectory <code>docs</code>:</p>
@@ -192,7 +192,7 @@ page(bar, 3).</pre>
 <p>
 Next, we will write DCG rules that builds the name of all the different files we need for our build graph:</p>
 
-<pre class="code" ext="">
+<pre class="code" ext="prolog">
 pdf(Stem) --&gt;
   atom(Stem), ".pdf".
 
@@ -214,7 +214,7 @@ ocr(Stem) --&gt;
 <p>
 Next, we will describe the various commands to run as ninja rules:</p>
 
-<pre class="code" ext="">
+<pre class="code" ext="prolog">
 rules --&gt;
   rule(split, "split $in $out"),
   rule(convert, "convert $in $out"),
@@ -224,7 +224,7 @@ rules --&gt;
 <p>
 Now, let's write the build graph for a single PDF:</p>
 
-<pre class="code" ext="">
+<pre class="code" ext="prolog">
 graph(Stem) --&gt;
   build([all_pages(pdf_page, Stem)], split, [pdf(Stem)]),
   foreach(page(Stem, Page), (
@@ -236,7 +236,7 @@ graph(Stem) --&gt;
 <p>
 And finally, the full build graph with rules:</p>
 
-<pre class="code" ext="">
+<pre class="code" ext="prolog">
 graph --&gt;
   rules,
   foreach(stem(Stem), graph(Stem)).</pre>
@@ -267,6 +267,12 @@ build bar-2.txt: ocr bar-2.jpg
 build bar-3.jpg: convert bar-3.pdf
 build bar-3.txt: ocr bar-3.jpg
 build bar.txt: cat bar-1.txt bar-2.txt bar-3.txt</pre>
+
+<h2 class="wiki subdirs">Sub directories</h2>
+
+<table class="subdirs">
+<tr><td><a class="subdir" href="prolog/index.html">[dir] prolog</a></td></tr>
+</table>
 
 <h2 class="wiki plfiles">Prolog files</h2>
 

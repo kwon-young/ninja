@@ -54,7 +54,7 @@ true.
 
 ## Documentation
 
-You can find a documented list of predicate here.
+You can find a documented list of predicate [here](https://kwon-young.github.io/ninja/).
 
 You can generate the documentation locally, either statically in the subdirectory `docs`:
 
@@ -165,7 +165,7 @@ page(bar, 3).
 
 Next, we will write DCG rules that builds the name of all the different files we need for our build graph:
 
-```
+```prolog
 pdf(Stem) -->
   atom(Stem), ".pdf".
 
@@ -187,7 +187,7 @@ ocr(Stem) -->
 
 Next, we will describe the various commands to run as ninja rules:
 
-```
+```prolog
 rules -->
   rule(split, "split $in $out"),
   rule(convert, "convert $in $out"),
@@ -197,7 +197,7 @@ rules -->
 
 Now, let's write the build graph for a single PDF:
 
-```
+```prolog
 graph(Stem) -->
   build([all_pages(pdf_page, Stem)], split, [pdf(Stem)]),
   foreach(page(Stem, Page), (
@@ -209,7 +209,7 @@ graph(Stem) -->
 
 And finally, the full build graph with rules:
 
-```
+```prolog
 graph -->
   rules,
   foreach(stem(Stem), graph(Stem)).
