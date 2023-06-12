@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ninja.pl -- Ninja build system generator</title>
+
+<link rel="stylesheet" type="text/css" href="pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="file"><span style="float:right"></span>ninja.pl -- Ninja build system generator</h1>
+
+<p>
+This module contains helper dcg predicates to generate ninja build files akin to the <a href="https://github.com/ninja-build/ninja/blob/master/misc/ninja_syntax.py"><code>ninja_syntax.py</code></a> python module distributed by ninja.
+You can use these predicates if you want to generate your own <code>build.ninja</code> build file.</p>
+
+<p>
+Example usage:</p>
+
+<pre class="code">
+build_graph --&gt;
+  rule(cp, "cp $in $out"),
+  build(["input.txt"], cp, ["output.txt"]).
+
+main --&gt;
+  phrase(build_graph, L),
+  open("build.ninja", write, Stream),
+  string_codes(S, L),
+  write(Stream, S),
+  close(Stream).</pre>
+
+<p>
+Then <code>build.ninja</code> contains the following build specification:</p>
+
+<pre class="code">
+rule cp
+  command = cp $in $out
+
+build input.txt: cp output.txt</pre>
+
+<p>
+See the <a href="https://ninja-build.org/manual.html">ninja build format documentation</a> for generating more complex build files.</p>
+
+<dl class="tags">
+<dt class="keyword-author">author</dt><dd class="keyword-author">- Kwon-Young Choi</dd>
+<dt class="keyword-license">license</dt><dd class="keyword-license">- GPL</dd>
+</dl>
+
+<dl>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="variable/3"><b class="pred">variable</b><var class="arglist">(+Pair:pair)</var>//</a> is <b class="det">semidet</b></dt><dd class="defbody">Generate a variable declaration from a pair <var>Pair</var>.
+The key can be an atom or a dcg, value should be a dcg.
+A variable definition always end with a new line.
+
+<pre class="code">
+?- phrase(variable(name-"Value"), L), format("~s", [L]).
+name = Value
+L = [110, 97, 109, 101, 32, 61, 32, 86, 97|...].</pre>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="variable/4"><b class="pred">variable</b><var class="arglist">(+Name:atom;dcg, +Value:dcg)</var>//</a> is <b class="det">semidet</b></dt><dd class="defbody">Generate a variable declaration as a variable <var>Name</var> with value <var>Value</var>.
+The variable name can be an atom or a dcg, value should be a dcg.
+A variable definition always end with a new line.
+
+<pre class="code">
+?- phrase(variable(name, "Value"), L), format("~s", [L]).
+name = Value
+L = [110, 97, 109, 101, 32, 61, 32, 86, 97|...].</pre>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="rule/4"><b class="pred">rule</b><var class="arglist">(+Name:atom;dcg, +Command:dcg)</var>//</a> is <b class="det">semidet</b></dt><dd class="defbody">Generate a rule declaration with no additional variables.
+The name can be an atom or a dcg, the command should be dcg.
+
+<pre class="code">
+?- phrase(rule(cp, "cp $in $out"), L), format("~s", [L]).
+rule cp
+  command = cp $in $out
+L = [114, 117, 108, 101, 32, 99, 112, 10, 32|...].</pre>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="rule/5"><b class="pred">rule</b><var class="arglist">(+Name:atom;dcg, +Command:dcg, +Variables:list(pair))</var>//</a> is <b class="det">semidet</b></dt><dd class="defbody">Generate a rule declaration with no additional variables.
+The name can be an atom or a dcg.
+The command should be dcg and describe the command to run.
+<var>Variables</var> is a list and will be generate using the <a href="ninja.html#variable/3">variable//1</a> rule.
+
+<pre class="code">
+?- phrase(rule(cp, "cp $in $out"), L), format("~s", [L]).
+rule cp
+  command = cp $in $out
+L = [114, 117, 108, 101, 32, 99, 112, 10, 32|...].</pre>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="build/5"><b class="pred">build</b><var class="arglist">(+Outs:list(dcg), +Rule:atom;dcg, +Ins:list(dcg))</var>//</a> is <b class="det">semidet</b></dt><dd class="defbody">Generate a build statement between input <var>Ins</var> and Output <var>Outs</var> with the rule <var>Rule</var>.
+
+<pre class="code">
+?- phrase(build(["input.txt"], cp, ["output.txt"]), L), format("~s", [L]).
+build input.txt: cp output.txt
+L = [98, 117, 105, 108, 100, 32, 105, 110, 112|...].</pre>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="build/6"><b class="pred">build</b><var class="arglist">(+Outs:list(dcg), +Rule:atom;dcg, +Ins:list(dcg), +Options:list)</var>//</a> is <b class="det">semidet</b></dt><dd class="defbody">Generate a build statement between input <var>Ins</var> and Output <var>Outs</var> with the rule <var>Rule</var>.
+Optional arguments can be specify in the option list <var>Options</var>.
+Valid options are:
+
+<dl class="termlist">
+<dt class="term"><b class="pred">implicit_ins</b><var class="arglist">(ImplicitIns:list(dcg))</var></dt><dd>List of implicit dependencies, as list of dcgs.</dd>
+<dt class="term"><b class="pred">implicit_outs</b><var class="arglist">(ImplicitOuts:list(dcg))</var></dt><dd>List of implicit outputs, as list of dcgs.</dd>
+<dt class="term"><b class="pred">orderonly_ins</b><var class="arglist">(OrderonlyIns:list(dcg))</var></dt><dd>List of order only dependencies, as list of dcgs.</dd>
+<dt class="term"><b class="pred">validations</b><var class="arglist">(Validations:list(dcg))</var></dt><dd>List of validation targets, as list of dcgs.</dd>
+<dt class="term"><b class="pred">variables</b><var class="arglist">(Variables:list(pair))</var></dt><dd>List of variables as pairs.
+
+<pre class="code">
+?- phrase(build(["input.txt"], cp, ["output.txt"],
+     [implicit_outs(["implicit_out.txt"]),
+      implicit_ins(["implicit_in.txt"]),
+      orderonly_ins(["orderonly_in.txt"]),
+      validations(["validation.txt"]),
+      variables([name-"value"])]), L), format("~s", [L]).
+build input.txt | implicit_out.txt: cp output.txt | implicit_in.txt || orderonly_in.txt |@ validation.txt
+  name = value
+L = `build input.txt | implici...alue\n`.</pre>
+
+</dd>
+</dl>
+
+</dd>
+<dt class="pubdef"><span style="float:right">&nbsp;</span><a name="deps/3"><b class="pred">deps</b><var class="arglist">(++Source:string)</var>//</a> is <b class="det">semidet</b></dt><dd class="defbody">Generate a whitespace separated list of dependencies from prolog source file <var>Source</var>.
+It also include <var>Source</var> as a dependency.
+
+<pre class="code">
+?- phrase(deps("ninja.pl"), L), format("~s", [L]).
+ninja.pl /usr/lib64/swipl-9.0.4/library/dcg/basics.pl /usr/lib64/swipl-9.0.4/library/dcg/high_order.pl /usr/lib64/swipl-9.0.4/library/option.pl /usr/lib64/swipl-9.0.4/library/error.pl
+L = `ninja.pl /usr/lib64/swipl...or.pl`.</pre>
+
+</dd>
+</dl>
+
+</body>
+</html>

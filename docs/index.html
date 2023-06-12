@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>ninja</title>
+
+<link rel="stylesheet" type="text/css" href="pldoc.css">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+
+</head>
+<body>
+
+
+<h1 class="wiki">Ninja build system generator</h1>
+
+<p>
+This module contains helper dcg predicates to generate ninja build files akin to the <a href="https://github.com/ninja-build/ninja/blob/master/misc/ninja_syntax.py"><code>ninja_syntax.py</code></a> python module distributed by ninja.
+You can use these predicates if you want to generate your own <code>build.ninja</code> build file.</p>
+
+<p>
+Example usage:</p>
+
+<pre class="code" ext="prolog">
+build_graph --&gt;
+  rule(cp, "cp $in $out"),
+  build(["input.txt"], cp, ["output.txt"]).
+
+main --&gt;
+  phrase(build_graph, L),
+  open("build.ninja", write, Stream),
+  string_codes(S, L),
+  write(Stream, S),
+  close(Stream).</pre>
+
+<p>
+Then <code>build.ninja</code> contains the following build specification:</p>
+
+<pre class="code" ext="">
+rule cp
+  command = cp $in $out
+
+build input.txt: cp output.txt</pre>
+
+<p>
+See the <a href="https://ninja-build.org/manual.html">ninja build format documentation</a> for generating more complex build files.</p>
+
+<h2 class="wiki">Installation</h2>
+
+<p>
+You can install this pack in swi-prolog as follows:</p>
+
+<pre class="code" ext="prolog">
+?- pack_install(ninja).
+% Contacting server at https://www.swi-prolog.org/pack/query ... ok
+Install ninja@0.2 from https://github.com/kwon-young/ninja/archive/v0.2.zip Y/n?
+% Contacting server at https://www.swi-prolog.org/pack/query ... ok
+% "v0.2.zip" was downloaded 2 times
+Package:                ninja
+Title:                  Ninja build system generator
+Installed version:      0.2
+Author:                 Kwon-Young Choi &lt;kwon-young.choi@hotmail.fr&gt;
+Maintainer:             Kwon-Young Choi &lt;kwon-young.choi@hotmail.fr&gt;
+Packager:               Kwon-Young Choi &lt;kwon-young.choi@hotmail.fr&gt;
+Home page:              https://github.com/kwon-young/ninja
+Download URL:           https://github.com/kwon-young/ninja/releases/*.zip
+Provides:               ninja
+Install "ninja-0.2.zip" (15,854 bytes) Y/n?
+true.</pre>
+
+<h2 class="wiki">Documentation</h2>
+
+<p>
+You can find a documented list of predicate here.</p>
+
+<p>
+You can generate the documentation locally, either statically in the subdirectory <code>docs</code>:</p>
+
+<pre class="code" ext="">
+$ swipl prolog/ninja.pl
+?- doc_save('.', [doc_root('docs'), recursive(true)]).</pre>
+
+<p>
+Or as a server:</p>
+
+<pre class="code" ext="prolog">
+?- doc_server(4000).</pre>
+
+<h2 class="wiki">Requirements</h2>
+
+<p>
+This library only depends on prolog librairies distributed by default and autoloaded by swi-prolog:</p>
+<ul>
+<li><a href="https://www.swi-prolog.org/pldoc/man?section=basics"><code>dcg/basics</code></a></li>
+<li><a href="https://www.swi-prolog.org/pldoc/man?section=highorder"><code>dcg/high_order</code></a></li>
+<li><a href="https://www.swi-prolog.org/pldoc/man?section=option"><code>option</code></a></li>
+<li><a href="https://www.swi-prolog.org/pldoc/man?section=error"><code>error</code></a>
+In order to use this library, you will need to have a good understanding of</li>
+<li>the <a href="https://ninja-build.org/manual.html">ninja build system file format</a></li>
+<li>Prolog Definite Clause Grammar (DCG). Here is a <a href="https://www.metalevel.at/prolog/dcg">very good primer</a> on the subject.</li>
+</ul>
+
+<h2 class="wiki">Motivation</h2>
+
+<p>
+I have always been in search of a good Domain Specific Language (DSL) for build system to do general data processing.
+This project is my attempt at one.</p>
+
+<p>
+But first, we need to define what is a build system or a build system generator.
+Keep in mind that these definitions are highly subjective.</p>
+
+<h3 class="wiki">What is a build system ?</h3>
+
+<p>
+A build system is a program which job is to execute other programs by following a build graph.
+A build graph is often a file that specify the commands to run.
+Each commands form a node in the graph, for which every input files an output files are clearly identified.
+By using the same file as output of a node to the input of another node, we can connect the nodes as a graph.</p>
+
+<p>
+The properties of a good build system are:</p>
+<ul>
+<li>Parallelism: build steps that do not depend on each other should be ran in parallel, so that the whole build finishes as fast as possible</li>
+<li>Caching: build steps should be only rebuilt only if outputs are out of dates
+Examples of build systems are:</li>
+<li>make</li>
+<li>ninja</li>
+<li>tup</li>
+<li>redo</li>
+<li><a href="https://github.com/evoldoers/biomake">biomake</a></li>
+<li>and many, many, many, many ... others
+Although build systems are very useful, writing the build graph manually can be very tedious.
+Often, build graph will consist of hundred or thousands (or more) build steps connected in a very complex graph.
+
+<p>
+This is where build system generator or meta build system come in.
+Build system generator can translate a build graph specified in a custom DSL or programming language into a build graph that can be executed by <code>make</code> or <code>ninja</code> or another build system.
+This is what <var>CMake</var> do for instance where its DSL is optimized for program compilation.</p>
+
+<p>
+Most of the time, build system generators also are build systems.
+For example, we could consider that <code>make</code> is its own build system generator when using its templating mechanism such as static patterns.
+In my view, any syntax or DSL that allows you to avoid specifying the full build graph is a build system generator.</p>
+
+<p>
+Here, <code>ninja</code> is the exception by requiring the full explicit build graph as its input.</p></li>
+</ul>
+
+<h3 class="wiki">General data processing</h3>
+
+<p>
+The traditional use of build system is program compilation.
+The rules to compile a program are <b>mostly</b> well known and are embodied in well known meta build system such as <code>autotools</code>, <var>CMake</var>, <var>Bazel</var>, etc.
+Almost every programming language has its own meta build system.</p>
+
+<p>
+However, it turns out that by following our dichotomy between a build system and a build system generator, we notice that build systems can be used for much more things than just program compilation.
+Build system can do general data processing but you need to pick your poison on which DSL you will use to specify your build graph.</p>
+
+<p>
+A very common choice is to use GNU Make syntax with automatic variables, static patterns, etc.
+However, you will be very quickly limited in how expressive you can be.
+Here is a use-case I have often encountered that cannot be cleanly expressed with Make.</p>
+
+<p>
+Let's say, we want to process PDFs. We want to split out each page of each PDF, convert each page as an image, OCR the images and finally concatenate each page text into a single text file.
+Each PDF can have a different number of pages.</p>
+
+<p>
+Notice that we have one independent graph per PDF.
+This can be cleanly expressed using static patterns in Make.
+However, the split and the join at the pages level have to be specified manually for each PDF, which defeat the use of static patterns anyway.</p>
+
+<h3 class="wiki">Using prolog DCG to generate a build graph</h3>
+
+<p>
+Here is how you could use a prolog DCG to specify the above graph.</p>
+
+<p>
+First, let's specify the knowledge we have of the PDF files we want to process.
+Namely, a unique stem for each PDF file and the number of pages for each stem.</p>
+
+<pre class="code" ext="prolog">
+stem(foo).
+stem(bar).
+
+page(foo, 1).
+page(foo, 2).
+page(bar, 1).
+page(bar, 2).
+page(bar, 3).</pre>
+
+<p>
+Next, we will write DCG rules that builds the name of all the different files we need for our build graph:</p>
+
+<pre class="code" ext="">
+pdf(Stem) --&gt;
+  atom(Stem), ".pdf".
+
+pdf_page(Stem, Page) --&gt;
+  atom(Stem), "-", number(Page), ".pdf".
+
+all_pages(Goal, Stem) --&gt;
+  foreach(page(Stem, Page), call(Goal, Stem, Page), " ").
+
+image(Stem, Page) --&gt;
+  atom(Stem), "-", number(Page), ".jpg".
+
+ocr_page(Stem, Page) --&gt;
+  atom(Stem), "-", number(Page), ".txt".
+
+ocr(Stem) --&gt;
+  atom(Stem), ".txt".</pre>
+
+<p>
+Next, we will describe the various commands to run as ninja rules:</p>
+
+<pre class="code" ext="">
+rules --&gt;
+  rule(split, "split $in $out"),
+  rule(convert, "convert $in $out"),
+  rule(ocr, "ocr $in $out"),
+  rule(cat, "cat $in $out").</pre>
+
+<p>
+Now, let's write the build graph for a single PDF:</p>
+
+<pre class="code" ext="">
+graph(Stem) --&gt;
+  build([all_pages(pdf_page, Stem)], split, [pdf(Stem)]),
+  foreach(page(Stem, Page), (
+    build([image(Stem, Page)], convert, [pdf_page(Stem, Page)]),
+    build([ocr_page(Stem, Page)], ocr, [image(Stem, Page)])
+  )),
+  build([ocr(Stem)], cat, [all_pages(ocr_page, Stem)]).</pre>
+
+<p>
+And finally, the full build graph with rules:</p>
+
+<pre class="code" ext="">
+graph --&gt;
+  rules,
+  foreach(stem(Stem), graph(Stem)).</pre>
+
+<p>
+This DCG will generate the following <code>build.ninja</code> file:</p>
+
+<pre class="code" ext="ninja">
+rule split
+  command = split $in $out
+rule convert
+  command = convert $in $out
+rule ocr
+  command = ocr $in $out
+rule cat
+  command = cat $in $out
+build foo-1.pdf foo-2.pdf: split foo.pdf
+build foo-1.jpg: convert foo-1.pdf
+build foo-1.txt: ocr foo-1.jpg
+build foo-2.jpg: convert foo-2.pdf
+build foo-2.txt: ocr foo-2.jpg
+build foo.txt: cat foo-1.txt foo-2.txt
+build bar-1.pdf bar-2.pdf bar-3.pdf: split bar.pdf
+build bar-1.jpg: convert bar-1.pdf
+build bar-1.txt: ocr bar-1.jpg
+build bar-2.jpg: convert bar-2.pdf
+build bar-2.txt: ocr bar-2.jpg
+build bar-3.jpg: convert bar-3.pdf
+build bar-3.txt: ocr bar-3.jpg
+build bar.txt: cat bar-1.txt bar-2.txt bar-3.txt</pre>
+
+<h2 class="wiki plfiles">Prolog files</h2>
+
+<table class="summary">
+</table>
+
+</body>
+</html>
