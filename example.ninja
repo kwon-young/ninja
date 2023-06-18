@@ -1,0 +1,26 @@
+rule generate
+  command = swipl $in
+  generator = 1
+build build.ninja: generate /home/kwon-young/prog/ninja/example.pl | /home/kwon-young/prog/ninja/example.pl /usr/lib64/swipl-9.0.4/library/dcg/basics.pl /usr/lib64/swipl-9.0.4/library/dcg/high_order.pl /home/kwon-young/prog/ninja/prolog/ninja.pl
+rule split
+  command = split $in $out
+rule convert
+  command = convert $in $out
+rule ocr
+  command = ocr $in $out
+rule cat
+  command = cat $in $out
+build foo-1.pdf foo-2.pdf: split foo.pdf
+build foo-1.jpg: convert foo-1.pdf
+build foo-1.txt: ocr foo-1.jpg | toto
+build foo-2.jpg: convert foo-2.pdf
+build foo-2.txt: ocr foo-2.jpg | toto
+build foo.txt: cat foo-1.txt foo-2.txt
+build bar-1.pdf bar-2.pdf bar-3.pdf: split bar.pdf
+build bar-1.jpg: convert bar-1.pdf
+build bar-1.txt: ocr bar-1.jpg | toto
+build bar-2.jpg: convert bar-2.pdf
+build bar-2.txt: ocr bar-2.jpg | toto
+build bar-3.jpg: convert bar-3.pdf
+build bar-3.txt: ocr bar-3.jpg | toto
+build bar.txt: cat bar-1.txt bar-2.txt bar-3.txt
