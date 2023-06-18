@@ -1,0 +1,16 @@
+rule generate
+  command = swipl $in
+  generator = 1
+build build.ninja: generate /home/kwon-young/prog/ninja/build.pl | /home/kwon-young/prog/ninja/build.pl /usr/lib64/swipl-9.0.4/library/dcg/basics.pl /home/kwon-young/prog/ninja/prolog/ninja.pl pack.pl
+rule doc
+  command = swipl -t halt -s load.pl -g doc && touch docs
+rule test
+  command = swipl -t halt -s load.pl -g test
+rule example
+  command = swipl $in
+rule zip
+  command = rm -rf ninja $out && mkdir ninja && cp -r $in ninja/ && zip -r $out ninja && rm -rf ninja
+build test: test prolog/ninja.pl
+build docs docs/index.html: doc load.pl  |@ test
+build example.ninja: example example.pl
+build v0.3.zip: zip docs build.pl LICENSE load.pl pack.pl prolog/ninja.pl README.md example.pl example.ninja .gitignore |@ test
